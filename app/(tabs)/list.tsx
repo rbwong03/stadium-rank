@@ -6,10 +6,13 @@ import {
   StyleSheet,
   FlatList,
   Modal,
-  Button,
-  Image, // Import Image component
+  Image,
+  Dimensions,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 const StadiumItem = ({ item, onPress }) => (
   <TouchableOpacity style={styles.itemContainer} onPress={() => onPress(item)}>
@@ -29,6 +32,8 @@ export default function ListScreen() {
   const [selectedTab, setSelectedTab] = useState('Visited');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedStadium, setSelectedStadium] = useState(null);
+  const [eventDetailsVisible, setEventDetailsVisible] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   const visitedStadiums = [
     {
@@ -77,15 +82,57 @@ export default function ListScreen() {
 
   const stadiumEvents = {
     'Wrigley Field': [
-      { id: 1, eventName: 'Cubs vs. Cardinals', date: '2023-08-15' },
-      { id: 2, eventName: 'Cubs vs. Brewers', date: '2023-08-22' },
+      {
+        id: 1,
+        eventName: 'Cubs vs. Cardinals',
+        date: '2023-08-15',
+        score: '3-2',
+        rating: 4.5,
+        comments: [
+          'I had a really good time at this game with my friends and family',
+          'Amazing atmosphere.',
+        ],
+        pictures: [
+          require('@/assets/images/wrigley.jpg'),
+          require('@/assets/images/wrigley.jpg'),
+        ],
+        ratings: {
+          food: 8,
+          environment: 9,
+          game: 10,
+          surroundingArea: 7,
+          aesthetic: 9,
+          fans: 10,
+          guestExperience: 8,
+          parkingTransportation: 9,
+          facilitiesAmenities: 7,
+        },
+      },
+      {
+        id: 2,
+        eventName: 'Cubs vs. Brewers',
+        date: '2023-08-22',
+        score: '5-3',
+        rating: 4.7,
+        comments: ['Awesome experience.', 'Loved the energy!'],
+        pictures: [
+          'https://example.com/pic3.jpg',
+          'https://example.com/pic4.jpg',
+        ],
+        ratings: {
+          food: 7,
+          environment: 8,
+          game: 9,
+          surroundingArea: 6,
+          aesthetic: 8,
+          fans: 9,
+          guestExperience: 8,
+          parkingTransportation: 9,
+          facilitiesAmenities: 7,
+        },
+      },
     ],
-    'Fenway Park': [
-      { id: 1, eventName: 'Red Sox vs. Yankees', date: '2022-07-04' },
-    ],
-    'Dodger Stadium': [
-      { id: 1, eventName: 'Dodgers vs. Giants', date: '2023-09-10' },
-    ],
+    // Add more events for other stadiums as needed
   };
 
   const stadiumAddresses = {
@@ -112,8 +159,61 @@ export default function ListScreen() {
     setModalVisible(true);
   };
 
+  const handleEventPress = (event) => {
+    setSelectedEvent(event);
+    setEventDetailsVisible(true);
+  };
+
   const data = selectedTab === 'Visited' ? visitedStadiums : wantToGoStadiums;
 
+  const renderRatingsTable = (ratings) => {
+    if (!ratings) {
+      return <Text style={styles.tableCell}>No ratings available</Text>;
+    }
+
+    return (
+      <View style={styles.tableColumn}>
+        <View style={styles.tableRow}>
+          <Text style={styles.tableLabel}>Food</Text>
+          <Text style={styles.tableValue}>{ratings.food}</Text>
+        </View>
+        <View style={styles.tableRow}>
+          <Text style={styles.tableLabel}>Environment</Text>
+          <Text style={styles.tableValue}>{ratings.environment}</Text>
+        </View>
+        <View style={styles.tableRow}>
+          <Text style={styles.tableLabel}>Game</Text>
+          <Text style={styles.tableValue}>{ratings.game}</Text>
+        </View>
+        <View style={styles.tableRow}>
+          <Text style={styles.tableLabel}>Surrounding Area</Text>
+          <Text style={styles.tableValue}>{ratings.surroundingArea}</Text>
+        </View>
+        <View style={styles.tableRow}>
+          <Text style={styles.tableLabel}>Aesthetic</Text>
+          <Text style={styles.tableValue}>{ratings.aesthetic}</Text>
+        </View>
+        <View style={styles.tableRow}>
+          <Text style={styles.tableLabel}>Fans</Text>
+          <Text style={styles.tableValue}>{ratings.fans}</Text>
+        </View>
+        <View style={styles.tableRow}>
+          <Text style={styles.tableLabel}>Guest Experience</Text>
+          <Text style={styles.tableValue}>{ratings.guestExperience}</Text>
+        </View>
+        <View style={styles.tableRow}>
+          <Text style={styles.tableLabel}>Parking and Transportation</Text>
+          <Text style={styles.tableValue}>{ratings.parkingTransportation}</Text>
+        </View>
+        <View style={styles.tableRow}>
+          <Text style={styles.tableLabel}>Facilities and Amenities</Text>
+          <Text style={styles.tableValue}>{ratings.facilitiesAmenities}</Text>
+        </View>
+
+      </View>
+    );
+  };
+  
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
@@ -162,20 +262,24 @@ export default function ListScreen() {
       {/* Modal for Stadium Details */}
       {selectedStadium && (
         <Modal
-          animationType='slide'
+          animationType="slide"
           transparent={false}
           visible={modalVisible}
           onRequestClose={() => setModalVisible(false)}
         >
           <SafeAreaView style={styles.modalContainer}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>{selectedStadium.name}</Text>
+              <View style={styles.headerRow}>
+                <Text style={styles.modalTitle}>{selectedStadium.name}</Text>
+                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                  <Text style={styles.modalClose}>Back</Text>
+                </TouchableOpacity>
+              </View>
 
-              {/* Add the Image component */}
               <Image
                 source={stadiumImages[selectedStadium.name]}
                 style={styles.stadiumImage}
-                resizeMode='cover'
+                resizeMode="cover"
               />
               <Text style={styles.modalDetail}>
                 Address: {stadiumAddresses[selectedStadium.name]}
@@ -189,17 +293,113 @@ export default function ListScreen() {
                 data={stadiumEvents[selectedStadium.name]}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
-                  <View style={styles.eventItem}>
-                    <View style={styles.eventRow}>
-                      <Text style={styles.eventName}>{item.eventName}</Text>
-                      <Text style={styles.eventDate}>{item.date}</Text>
+                  <TouchableOpacity onPress={() => handleEventPress(item)}>
+                    <View style={styles.eventItem}>
+                      <View style={styles.eventRow}>
+                        <Text style={styles.eventName}>{item.eventName}</Text>
+                        <Text style={styles.eventDate}>{item.date}</Text>
+                      </View>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 )}
               />
-              <Button title='Close' onPress={() => setModalVisible(false)} />
             </View>
           </SafeAreaView>
+
+          {/* Modal for Event Details */}
+          {selectedEvent && (
+            <Modal
+              animationType="slide"
+              transparent={false}
+              visible={eventDetailsVisible}
+              onRequestClose={() => setEventDetailsVisible(false)}
+            >
+              <SafeAreaView style={styles.modalContainer}>
+                <FlatList
+                  ListHeaderComponent={() => (
+                    <>
+                      <View style={styles.modalContent}>
+                        <View style={styles.headerRow}>
+                          <Text style={styles.modalTitle}>
+                            {selectedEvent.eventName}
+                          </Text>
+                          <TouchableOpacity
+                            onPress={() => setEventDetailsVisible(false)}
+                          >
+                            <Text style={styles.modalClose}>Back</Text>
+                          </TouchableOpacity>
+                        </View>
+
+                        <Text style={styles.modalDetail}>
+                          Date: {selectedEvent.date}
+                        </Text>
+                        <Text style={styles.modalDetail}>
+                          Score: {selectedEvent.score}
+                        </Text>
+                        <Text style={styles.modalDetail}>
+                          Rating: {selectedEvent.rating}/5
+                        </Text>
+
+                        {/* Add the ratings table */}
+                        <Text style={styles.commentsHeader}>
+                          Event Ratings:
+                        </Text>
+                        {renderRatingsTable(selectedEvent.ratings)}
+
+                        <Text
+                          style={[styles.commentsHeader, { marginBottom: 10 }]}
+                        >
+                          Pictures:
+                        </Text>
+                        <ScrollView
+                          horizontal
+                          pagingEnabled
+                          decelerationRate="fast"
+                          snapToInterval={screenWidth}
+                          snapToAlignment="center"
+                          showsHorizontalScrollIndicator={false}
+                        >
+                          {selectedEvent.pictures.map((picture, index) => (
+                            <View
+                              key={index}
+                              style={{
+                                width: screenWidth,
+                                alignItems: "center",
+                              }}
+                            >
+                              <View style={styles.carouselContainer}>
+                                <Image
+                                  source={picture}
+                                  style={styles.carouselImage}
+                                  resizeMode="cover"
+                                />
+                              </View>
+                            </View>
+                          ))}
+                        </ScrollView>
+
+                        <Text style={styles.commentsHeader}>Review:</Text>
+
+                        {/* Render reviews here */}
+                        {selectedEvent.comments && selectedEvent.comments.length > 0 ? (
+                          selectedEvent.comments.map((comment, index) => (
+                            <Text key={index} style={styles.comment}>
+                              {comment}
+                            </Text>
+                          ))
+                        ) : (
+                          <Text style={styles.noCommentsText}>No reviews available</Text>
+                        )}
+                      </View>
+                    </>
+                  )}
+                  data={[]}
+                  keyExtractor={(item, index) => index.toString()}
+                  contentContainerStyle={styles.reviewContainer} // Added padding here
+                />
+              </SafeAreaView>
+            </Modal>
+          )}
         </Modal>
       )}
     </SafeAreaView>
@@ -209,20 +409,20 @@ export default function ListScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f8f8f8',
+    backgroundColor: "#f8f8f8",
   },
   header: {
     paddingHorizontal: 16,
     paddingVertical: 10,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
   },
   tabs: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   tab: {
     marginRight: 16,
@@ -231,50 +431,50 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#000',
+    borderBottomColor: "#000",
   },
   tabText: {
-    color: '#000',
+    color: "#000",
     fontSize: 16,
   },
   activeTabText: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   listContainer: {
     paddingHorizontal: 0,
   },
   itemContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingVertical: 16,
     paddingHorizontal: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
   },
   separator: {
     height: 1,
-    backgroundColor: '#E0E0E0',
-    width: '100%',
+    backgroundColor: "#E0E0E0",
+    width: "100%",
   },
   rank: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginRight: 16,
   },
   detailsContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   name: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   details: {
     fontSize: 16,
-    color: '#555',
+    color: "#555",
     marginTop: 4,
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     paddingTop: 50, // Add padding to ensure content starts below the status bar
   },
   modalContent: {
@@ -282,15 +482,19 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   stadiumImage: {
-    width: '100%',
+    width: "100%",
     height: 200, // Adjust height as needed
     borderRadius: 10,
     marginBottom: 20,
   },
   modalTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
+  },
+  modalClose: {
+    fontSize: 16,
+    color: "blue",
   },
   modalDetail: {
     fontSize: 18,
@@ -298,25 +502,87 @@ const styles = StyleSheet.create({
   },
   eventsHeader: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginTop: 20,
     marginBottom: 10,
   },
   eventItem: {
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: "#ccc",
+  },
+  eventRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   eventName: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   eventDate: {
     fontSize: 16,
-    color: '#555',
+    color: "#555",
   },
-  eventRow: {
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  commentsHeader: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  comment: {
+    fontSize: 16,
+    color: "#555",
+    marginBottom: 10,
+  },
+  noCommentsText: {
+    fontSize: 16,
+    color: "#999",
+    fontStyle: 'italic',
+  },
+  carouselContainer: {
+    width: "80%", // Image width
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  carouselImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: 10,
+  },
+  tableColumn: {
+    marginVertical: 20,
+    marginHorizontal: 10,
+    padding: 10,
+    backgroundColor: '#f0f0f0', // Light background for the table
+    borderRadius: 10, // Rounded corners for the table
+    shadowColor: '#000', // Shadow for a subtle 3D effect
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3, // Elevation for Android shadow
+  },
+  tableRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-  }
+    marginVertical: 5,
+  },
+  tableLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
+  },
+  tableValue: {
+    fontSize: 14,
+    color: '#555',
+  },
+  reviewContainer: {
+    paddingBottom: 20,
+  },
 });
