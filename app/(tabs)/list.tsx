@@ -9,7 +9,6 @@ import {
   Image,
   Dimensions,
   ScrollView,
-  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
@@ -149,7 +148,7 @@ const StadiumItem = ({ item, onPress }) => (
   </TouchableOpacity>
 );
 
-export default function HomeScreen() {
+export default function ListScreen() {
   const [selectedTab, setSelectedTab] = useState('Visited');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedStadium, setSelectedStadium] = useState(null);
@@ -250,39 +249,49 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* The header of the  main lists page*/}
-      <View style={styles.header}>
+      <View style={styles.headerRow}>
         <Text style={styles.headerTitle}>Lists</Text>
-        <View style={styles.tabs}>
-          <TouchableOpacity
-            style={[styles.tab, selectedTab === 'Visited' && styles.activeTab]}
-            onPress={() => setSelectedTab('Visited')}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                selectedTab === 'Visited' && styles.activeTabText,
-              ]}
-            >
-              Visited
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.tab,
-              selectedTab === 'Want to Go' && styles.activeTab,
-            ]}
-            onPress={() => setSelectedTab('Want to Go')}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                selectedTab === 'Want to Go' && styles.activeTabText,
-              ]}
-            >
-              Want to Go
-            </Text>
-          </TouchableOpacity>
+        <View style={styles.buttons}>
+          {selectedTab === 'Visited' && (
+            <TouchableOpacity style={styles.addButton}>
+              <Text style={styles.buttonText}>Add Visit</Text>
+            </TouchableOpacity>
+          )}
+          {selectedTab === 'Want to Go' && (
+            <TouchableOpacity style={styles.addButton}>
+              <Text style={styles.buttonText}>Add to Wishlist</Text>
+            </TouchableOpacity>
+          )}
         </View>
+      </View>
+
+      <View style={styles.tabs}>
+        <TouchableOpacity
+          style={[styles.tab, selectedTab === 'Visited' && styles.activeTab]}
+          onPress={() => setSelectedTab('Visited')}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              selectedTab === 'Visited' && styles.activeTabText,
+            ]}
+          >
+            Visited
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, selectedTab === 'Want to Go' && styles.activeTab]}
+          onPress={() => setSelectedTab('Want to Go')}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              selectedTab === 'Want to Go' && styles.activeTabText,
+            ]}
+          >
+            Want to Go
+          </Text>
+        </TouchableOpacity>
       </View>
       {/* The list of stadiums/places the user wants to go / has gone */}
       <FlatList
@@ -729,19 +738,66 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',  // Center everything on the x-axis
-    alignItems: 'center',      // Align logos and text vertically
-    marginBottom: 10,          // Add margin if needed
+    justifyContent: 'center', // Center everything on the x-axis
+    alignItems: 'center', // Align logos and text vertically
+    marginBottom: 10, // Add margin if needed
   },
   teamLogo: {
-    width: 100,   // Adjust the size of the logos
-    height: 100,  // Adjust the size of the logos
+    width: 100, // Adjust the size of the logos
+    height: 100, // Adjust the size of the logos
     borderRadius: 100, // Make the logos circular (half of width/height)
-    marginHorizontal: 10,  // Space between the logo and the "vs" text
+    marginHorizontal: 10, // Space between the logo and the "vs" text
   },
   vsText: {
-    fontSize: 18,  // Adjust font size as needed
+    fontSize: 18, // Adjust font size as needed
     fontWeight: 'bold',
     color: '#333', // Adjust the color as needed
   },
-  });
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between', // Space between the header and the buttons
+    alignItems: 'center', // Vertically center the items
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  buttons: {
+    flexDirection: 'row',
+  },
+  addButton: {
+    marginLeft: 10, // Space between the buttons
+    backgroundColor: '#007BFF', // Customize your button color
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 4, // Rounded corners
+  },
+  buttonText: {
+    color: '#FFF', // Text color
+    fontSize: 14, // Font size
+    fontWeight: 'bold', // Font weight
+  },
+  tabs: {
+    flexDirection: 'row',
+    paddingHorizontal: 16, // Ensure consistent padding
+    marginBottom: 10, // Space below tabs
+  },
+  tab: {
+    marginRight: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#000',
+  },
+  tabText: {
+    color: '#000',
+    fontSize: 16,
+  },
+  activeTabText: {
+    fontWeight: 'bold',
+  },
+});
